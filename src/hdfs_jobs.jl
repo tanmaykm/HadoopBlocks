@@ -64,10 +64,10 @@ done(iter::MapInputIterator, state) = iter.is_done
 
 
 function _worker_task(t::WorkerTaskInitJob)
-    logmsg("WorkerTaskInitJob jid:$(t.jid)")
+    #logmsg("WorkerTaskInitJob jid:$(t.jid)")
     js = ((myid() == 1) ? _def_wrkr_job_store : _job_store)
     js[t.jid] = HdfsJobCtx(t.jid, t.inp_typ, t.fn_find_rec, t.fn_map, t.fn_collect, t.fn_reduce)
-    logmsg("WorkerTaskInitJob jid:$(t.jid) initialized")
+    #logmsg("WorkerTaskInitJob jid:$(t.jid) initialized")
     t.jid
 end
 
@@ -92,7 +92,7 @@ function _worker_task(t::WorkerTaskMap)
 
     results = jinfo.results
     for rec in MapInputIterator(jinfo.rdr, t.blk_url, j.fn_find_rec)
-        logmsg("MapInputIterator got: rec")
+        #logmsg("MapInputIterator got: rec")
         (nothing == rec) && continue
         for mapped_rec in fn_map(rec)
             results = fn_collect(results, mapped_rec)
@@ -100,7 +100,7 @@ function _worker_task(t::WorkerTaskMap)
         end
     end
     jinfo.results = results
-    logmsg((recs == 0) ? "no usable record in block" : "no usable record at end of block")
+    #logmsg((recs == 0) ? "no usable record in block" : "no usable record at end of block")
     recs
 end
 
@@ -118,18 +118,18 @@ end
 
 function _callback(t::WorkerTaskInitJob, ret)
     jid = t.jid
-    logmsg("CB> WorkerTaskInitJob jid:$jid/$ret")
+    #logmsg("CB> WorkerTaskInitJob jid:$jid/$ret")
     !haskey(_job_store, jid) && return # if job is deleted because of a past error
     j = _job_store[jid]
 
     (ret != jid) && return _set_status(j, STATE_ERROR, ret)
     if(0 == (j.info.num_pending_inits -= 1))
-        logmsg("distributing blocks for job $jid")
+        #logmsg("distributing blocks for job $jid")
         @async begin
             try
                 _distribute(jid, j.info.source_spec)
             catch ex
-                logmsg("error distributing job $jid")
+                #logmsg("error distributing job $jid")
                 _set_status(j, STATE_ERROR, ex)
             end
         end
@@ -152,7 +152,7 @@ function _callback(t::WorkerTaskFetchCollected, ret)
         ji.num_reduces_done += 1
         (ji.num_reduces == ji.num_reduces_done) && _set_status(j, STATE_COMPLETE)
     catch ex
-        logmsg("error reducing job $jid")
+        #logmsg("error reducing job $jid")
         _set_status(j, STATE_ERROR, ex)
         return
     end
@@ -162,26 +162,26 @@ function _callback(t::WorkerTaskFileInfo, ret)
     jid = t.jid
     j = _job_store[jid] 
     try
-        logmsg("WorkerTaskFileInfo callback got $(typeof(ret))")
+        #logmsg("WorkerTaskFileInfo callback got $(typeof(ret))")
         !isa(ret, MRHdfsFileInput) && throw(ret)
 
-        logmsg("WorkerTaskFileInfo callback got $(ret.file_list)")
+        #logmsg("WorkerTaskFileInfo callback got $(ret.file_list)")
         nparts = 0
         for (idx,fname) in enumerate(ret.file_list)
-            logmsg("WorkerTaskFileInfo idx: $idx fname: $fname")
+            #logmsg("WorkerTaskFileInfo idx: $idx fname: $fname")
             blk_dist = ret.file_blocks[idx]
-            logmsg("WorkerTaskFileInfo blk_dist: $blk_dist")
+            #logmsg("WorkerTaskFileInfo blk_dist: $blk_dist")
             nparts += length(blk_dist)
             for (blk_id,macs) in enumerate(blk_dist)
-                logmsg("WorkerTaskFileInfo blk_id:$blk_id macs:$macs")
+                #logmsg("WorkerTaskFileInfo blk_id:$blk_id macs:$macs")
                 #TODO: use actual offset instead of block id
                 maclist = macs[2]
                 wt = WorkerTaskMap(jid, string(fname, '#', blk_id))
-                logmsg("WorkerTaskFileInfo wt: $wt")
+                #logmsg("WorkerTaskFileInfo wt: $wt")
                 qt = QueuedWorkerTask(wt, _worker_task, _callback, maclist)
-                logmsg("WorkerTaskFileInfo qt: $qt")
+                #logmsg("WorkerTaskFileInfo qt: $qt")
                 queue_worker_task(qt)
-                logmsg("WorkerTaskFileInfo queued")
+                #logmsg("WorkerTaskFileInfo queued")
             end
         end
         _start_running(jid, nparts)
@@ -268,10 +268,10 @@ function _start_running(jid::JobId, nparts)
     j = _job_store[jid]
     j.info.num_parts = nparts
     if(j.info.state != STATE_ERROR)
-        logmsg("distributed blocks for job $jid")
+        #logmsg("distributed blocks for job $jid")
         _set_status(j, STATE_RUNNING)
         _sched()
-        logmsg("scheduled blocks for job $jid")
+        #logmsg("scheduled blocks for job $jid")
     end
 end
 
@@ -297,7 +297,7 @@ function _distribute(jid::JobId, source::MRFsFileInput)
         expand_file_inputs(source)
         nparts = 0
         for (idx,fname) in enumerate(source.file_list)
-            nfileblks = int(ceil(source.file_info[idx].size/source.block_sz))
+            nfileblks = round(Int, ceil(source.file_info[idx].size/source.block_sz))
             nparts += nfileblks
             for blk_id in 1:nfileblks
                 queue_worker_task(QueuedWorkerTask(WorkerTaskMap(jid, string(fname, '#', blk_id)), _worker_task, _callback, :wrkr_any))
@@ -340,7 +340,7 @@ function status(j::HdfsJobCtx, desc::Bool=false)
     !desc && return status_str()
 
     descinfo = ji.state_info
-    (ji.state == STATE_RUNNING) && (descinfo = (0 == ji.num_parts) ? 0 : int(ji.num_parts_done*100/ji.num_parts))
+    (ji.state == STATE_RUNNING) && (descinfo = (0 == ji.num_parts) ? 0 : round(Int, ji.num_parts_done*100/ji.num_parts))
     (status_str(), descinfo)
 end
 

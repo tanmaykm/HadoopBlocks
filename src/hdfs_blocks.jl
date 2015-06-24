@@ -17,7 +17,7 @@ function Block(hfile::HDFSFile)
     worker_ips = map(x->getaddrinfo(string(isa(x, LocalProcess)?localip:x.host)), map(x->Base.worker_from_id(x), worker_ids))
 
     blks = hdfs_blocks(hfile)
-    logmsg(blks)
+    #logmsg(blks)
     block_dist = [map(IPv4,x[2]) for x in blks]
     addloopback!(block_dist)
     block_wrkr_ids = map(ips->worker_ids[findin(worker_ips, ips)], block_dist)

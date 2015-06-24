@@ -46,7 +46,7 @@ input_reader_type(inp::MRHdfsFileInput) = (MRHdfsFileInput, "")
 get_input_reader(::Type{MRHdfsFileInput}, rdr_typ::String) = HdfsBlockReader("", '\n')
 
 function expand_file_inputs(inp::MRHdfsFileInput)
-    logmsg("expand_file_inputs begin")
+    #logmsg("expand_file_inputs begin")
     fl = ASCIIString[]
     infol = HDFSFileInfo[]
     blockl = Any[]
@@ -85,7 +85,7 @@ function expand_file_inputs(inp::MRHdfsFileInput)
     inp.file_list = fl
     inp.file_info = infol
     inp.file_blocks = blockl
-    logmsg("expand_file_inputs ret: $inp")
+    #logmsg("expand_file_inputs ret: $inp")
     inp
 end
 

@@ -73,11 +73,11 @@ const _procid_tasks = Dict{Int, WorkQueue}()
 const _any_tasks = emptypq()
 
 function _remap_macs_to_procs(macs)
-    logmsg("macs: $macs")
+    #logmsg("macs: $macs")
     available_macs = filter(x->(x in _all_remote_names), macs)
     (length(available_macs) == 0) && (available_macs = filter(x->(x in _all_remote_names), map(x->split(x,".")[1], macs)))
     (length(available_macs) == 0) && push!(available_macs, "")
-    logmsg("available_macs: $available_macs")
+    #logmsg("available_macs: $available_macs")
     available_macs
 end
 
@@ -94,7 +94,7 @@ function execute_worker_task(t::QueuedWorkerTask)
 end
 
 function queue_worker_task(t::QueuedWorkerTask)
-    logmsg("in queue_worker_task with $t and target:$(t.target)")
+    #logmsg("in queue_worker_task with $t and target:$(t.target)")
     _queue_worker_task(t, t.target)
     _start_feeders()
     nothing

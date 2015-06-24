@@ -8,6 +8,8 @@ using Blocks
 
 import Blocks: Block
 
+import Elly: status
+
 import Base: close, eof, read, write, readbytes, peek, readall, flush, nb_available, position, filesize, seek, seekend, seekstart, skip,
              start, done, next, wait
 
