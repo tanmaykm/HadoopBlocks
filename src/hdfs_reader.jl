@@ -2,8 +2,8 @@
 # MapInputReader to read block sized dataframes
 type HdfsBlockReader <: MapStreamInputReader
     hbr::BlockIO
-    end_byte::Union(Char,Nothing)
-    function HdfsBlockReader(url::String="", end_byte::Union(Char,Nothing)=nothing)
+    end_byte::Union{Char,Void}
+    function HdfsBlockReader(url::AbstractString="", end_byte::Union{Char,Void}=nothing)
         ret = new()
         ret.end_byte = end_byte
         !isempty(url) && reset_pos(ret, url)
@@ -11,7 +11,7 @@ type HdfsBlockReader <: MapStreamInputReader
     end
 end
 get_stream(hdfr::HdfsBlockReader) = hdfr.hbr
-function reset_pos(hdfr::HdfsBlockReader, url::String)
+function reset_pos(hdfr::HdfsBlockReader, url::AbstractString)
     u = URI(url)
     frag = u.fragment
     url = string(defrag(u))
@@ -36,14 +36,14 @@ type MRHdfsFileInput <: MRInput
     file_info
     file_blocks
 
-    function MRHdfsFileInput(source_spec, reader_fn::Function, rdr_type::String="")
+    function MRHdfsFileInput(source_spec, reader_fn::Function, rdr_type::AbstractString="")
         new(source_spec, reader_fn, nothing, nothing, nothing)
     end
 end
 
 # allowed types: buffer, stream
 input_reader_type(inp::MRHdfsFileInput) = (MRHdfsFileInput, "")
-get_input_reader(::Type{MRHdfsFileInput}, rdr_typ::String) = HdfsBlockReader("", '\n')
+get_input_reader(::Type{MRHdfsFileInput}, rdr_typ::AbstractString) = HdfsBlockReader("", '\n')
 
 function expand_file_inputs(inp::MRHdfsFileInput)
     #logmsg("expand_file_inputs begin")

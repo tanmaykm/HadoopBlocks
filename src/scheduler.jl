@@ -14,11 +14,11 @@ const _debug = true
 
 safe_dequeue!(pq::PriorityQueue, key) = (key in keys(pq)) && dequeue!(pq,key)
 
-typealias FuncNone  Union(Function,Nothing)
+typealias FuncNone  Union{Function,Void}
 
 ##n account of the worker machines available
 const _remotes = Array(Vector{ASCIIString},0)
-const _all_remote_names = Set{String}()
+const _all_remote_names = Set{AbstractString}()
 num_remotes() = length(_remotes[1])
 function prep_remotes(force::Bool=false)
     !(force || isempty(_remotes)) && return
@@ -51,9 +51,9 @@ type QueuedWorkerTask
     wtask::WorkerTask
     remote_method::Function
     callback::FuncNone
-    target::Union(Int,ASCIIString,Symbol,Vector{ASCIIString},Vector{Int},Vector{AbstractString})
+    target::Union{Int,ASCIIString,Symbol,Vector{ASCIIString},Vector{Int},Vector{AbstractString}}
     qtime::Float64
-    function QueuedWorkerTask(wtask::WorkerTask, remote_method::Function, callback::FuncNone, target::Union(Int,ASCIIString,Symbol,Vector{ASCIIString},Vector{Int},Vector{AbstractString}))
+    function QueuedWorkerTask(wtask::WorkerTask, remote_method::Function, callback::FuncNone, target::Union{Int,ASCIIString,Symbol,Vector{ASCIIString},Vector{Int},Vector{AbstractString}})
         new(wtask, remote_method, callback, target, time())
     end
 end
@@ -162,7 +162,7 @@ function _start_feeders()
     end
 end
 
-function _fetch_tasks(proc_id::Int, ip::String, hn::String, onlypeek::Bool=false)
+function _fetch_tasks(proc_id::Int, ip::AbstractString, hn::AbstractString, onlypeek::Bool=false)
     v = PriorityQueue(Any,Float64,Forward) #emptypq()
     function add_to_fp(q)
         (length(q) > 0) && (v[q] = peek(q)[2])

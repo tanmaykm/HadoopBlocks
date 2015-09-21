@@ -3,9 +3,9 @@ const def_file_blk_sz = (64*1024*1024)
 # MapInputReader to read block sized dataframes
 type FsBlockReader <: MapStreamInputReader
     fbr::BlockIO
-    end_byte::Union(Char,Nothing)
+    end_byte::Union{Char,Void}
     block_sz::Int
-    function FsBlockReader(path::String="", end_byte::Union(Char,Nothing)=nothing, block_sz::Int=def_file_blk_sz)
+    function FsBlockReader(path::AbstractString="", end_byte::Union{Char,Void}=nothing, block_sz::Int=def_file_blk_sz)
         ret = new()
         ret.end_byte = end_byte
         ret.block_sz = block_sz
@@ -14,7 +14,7 @@ type FsBlockReader <: MapStreamInputReader
     end
 end
 get_stream(fr::FsBlockReader) = fr.fbr
-function reset_pos(fr::FsBlockReader, path::String)
+function reset_pos(fr::FsBlockReader, path::AbstractString)
     u = URI(path)
     frag = u.fragment
     path = u.path
@@ -52,8 +52,8 @@ function expand_file_inputs(inp::MRFsFileInput)
     rwild = r"[\*\[\?]"
     fspec = ""
 
-    function get_files(path::String, pattern::Regex)
-        function filt(fname::String)
+    function get_files(path::AbstractString, pattern::Regex)
+        function filt(fname::AbstractString)
             isdir(fname) && return false
             ismatch(pattern, basename(fname))
         end
@@ -61,12 +61,12 @@ function expand_file_inputs(inp::MRFsFileInput)
         filter(filt, map(x->joinpath(path,x),dir_list))
     end
    
-    function add_file(f::String) 
+    function add_file(f::AbstractString) 
         push!(fl, f)
         push!(infol, stat(f))
     end
 
-    function add_dir(path::String, pattern::Regex=r".*")
+    function add_dir(path::AbstractString, pattern::Regex=r".*")
         for filt_fname in get_files(path, pattern)
             add_file(filt_fname)
         end

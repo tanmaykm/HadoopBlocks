@@ -11,7 +11,7 @@ end
 # Worker task type. One of: map, file_info, reduce(in future)
 type WorkerTaskMap <: WorkerTask
     jid::JobId
-    blk_url::String
+    blk_url::AbstractString
 end
 
 type WorkerTaskFileInfo <: WorkerTask
@@ -45,7 +45,7 @@ type MapInputIterator
     is_done::Bool
     rec::Any
 
-    function MapInputIterator(r::MapInputReader, url::String, fn_find_rec::Function)
+    function MapInputIterator(r::MapInputReader, url::AbstractString, fn_find_rec::Function)
         reset_pos(r, url)
         new(r, fn_find_rec, false, nothing)
     end
@@ -242,7 +242,7 @@ type HdfsJobCtx
     fn_collect::Function
     fn_reduce::FuncNone
 
-    info::Union(HdfsJobRunInfo, HdfsJobSchedInfo)           # holds sched info at master node and run info at worker nodes
+    info::Union{HdfsJobRunInfo, HdfsJobSchedInfo}           # holds sched info at master node and run info at worker nodes
 
     # constructor at the scheduler end
     function HdfsJobCtx(jid::JobId, source::MRInput, fn_map::Function, fn_collect::Function, fn_reduce::FuncNone)

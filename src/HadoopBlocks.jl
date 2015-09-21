@@ -51,7 +51,7 @@ logmsg(s) = debug(s)
 #logmsg(s) = nothing
 
 typealias JobId     Int64
-typealias FuncNone  Union(Function,Nothing)
+typealias FuncNone  Union{Function,Void}
 
 include("scheduler.jl")
 using HadoopBlocks.Scheduler

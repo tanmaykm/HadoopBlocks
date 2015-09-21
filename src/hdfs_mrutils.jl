@@ -69,7 +69,7 @@ function find_rec(rdr::MapStreamInputReader, iter_status, t::Type{Vector}, rec_s
         # TODO: check for eof!!
         l = rstrip(readline(ios))
         #logmsg("l($(i+=1))=$l")
-        !isempty(filters) && isa(filters[1], String) && !startswith(l, filters[1]) && continue
+        !isempty(filters) && isa(filters[1], AbstractString) && !startswith(l, filters[1]) && continue
         splt = split(l, col_sep)
         isempty(filters) && return (splt, false, position(ios))
         found = true
@@ -77,7 +77,7 @@ function find_rec(rdr::MapStreamInputReader, iter_status, t::Type{Vector}, rec_s
             f = filters[idx]
             (nothing == f) && continue
             isa(f, Regex) && ismatch(splt[idx], f) && continue
-            isa(f, String) && (f == splt[idx]) && continue
+            isa(f, AbstractString) && (f == splt[idx]) && continue
             isa(f, Function) && f(splt[idx]) && continue
             found = false
             break

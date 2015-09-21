@@ -2,18 +2,18 @@
 ##
 # Provides access to map results
 type MapResultReader <: MapInputReader
-    url::String
+    url::AbstractString
     jid::Int64
     results::Any
 
-    function MapResultReader(url::String="")
+    function MapResultReader(url::AbstractString="")
         r = new("", 0, nothing)
         isempty(url) || reset_pos(r, url)
         r
     end
 end
 
-function reset_pos(r::MapResultReader, url::String)
+function reset_pos(r::MapResultReader, url::AbstractString)
     (url == r.url) && return
 
     # new source
