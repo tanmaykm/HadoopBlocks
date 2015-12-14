@@ -14,7 +14,7 @@ function Block(hfile::HDFSFile)
 
     worker_ids = workers()
     localip = getipaddr()
-    worker_ips = map(x->getaddrinfo(string(isa(x, LocalProcess)?localip:x.host)), map(x->Base.worker_from_id(x), worker_ids))
+    worker_ips = map(x->getaddrinfo(string(isa(x, LocalProcess)?localip:x.config.host.value)), map(x->Base.worker_from_id(x), worker_ids))
 
     blks = hdfs_blocks(hfile)
     #logmsg(blks)
